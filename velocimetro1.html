@@ -1,140 +1,30 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html>
 <head>
+    <title>Contador de Voltas e Velocímetro</title>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Velocímetro e Contador de Voltas</title>
-    <style>
-        body {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            background-color: #222;
-            color: white;
-            font-family: Arial, sans-serif;
-        }
-        canvas {
-            background-color: black;
-            border-radius: 50%;
-        }
-        .contador {
-            margin-top: 20px;
-            font-size: 24px;
-        }
-        button {
-            margin: 10px;
-            padding: 10px;
-            font-size: 18px;
-            cursor: pointer;
-        }
-        .timer {
-            margin-top: 20px;
-            font-size: 20px;
-        }
-    </style>
 </head>
 <body>
-    <canvas id="velocimetro" width="200" height="200"></canvas>
-    <div class="contador">
-        Voltas: <span id="voltas">0</span>
-        <br>
-        Voltas por minuto: <span id="vpm">0</span>
-    </div>
-    <div class="timer">
-        Tempo: <span id="timer">00:00</span>
-    </div>
-    <button onclick="incrementarVolta()">Adicionar Volta</button>
-    <button onclick="resetarVoltas()">Resetar</button>
+    <h1>Contador de Voltas e Velocímetro</h1>
+    <p id='contador'>Voltas: 0</p>
+    <p id='velocidade'>Velocidade: 0 km/h</p>
 
     <script>
-        let voltas = 0;
-        let velocidade = 0;
-        let voltasPorMinuto = 0;
-        let inicioTempo = Date.now();
-        let ultimoVpm = 0; // Para comparar o VPM anterior e detectar diminuição
-        let timerInterval;
+        function atualizarDados() {
+            fetch('/leitura')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('contador').innerText = 'Voltas: ' + data;
+            });
 
-        function desenharVelocimetro(valor) {
-            const canvas = document.getElementById("velocimetro");
-            const ctx = canvas.getContext("2d");
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            // Fundo
-            ctx.fillStyle = "#444";
-            ctx.beginPath();
-            ctx.arc(100, 100, 90, 0, 2 * Math.PI);
-            ctx.fill();
-            
-            // Indicador
-            ctx.strokeStyle = "red";
-            ctx.lineWidth = 5;
-            ctx.beginPath();
-            const angulo = (valor / 100) * Math.PI - Math.PI / 2;
-            ctx.moveTo(100, 100);
-            ctx.lineTo(100 + 70 * Math.cos(angulo), 100 + 70 * Math.sin(angulo));
-            ctx.stroke();
-            
-            // Texto
-            ctx.fillStyle = "white";
-            ctx.font = "20px Arial";
-            ctx.fillText(`${valor} km/h`, 60, 110);
+            fetch('/velocidade')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('velocidade').innerText = 'Velocidade: ' + data + ' km/h';
+            });
         }
 
-        function incrementarVolta() {
-            voltas++;
-            document.getElementById("voltas").textContent = voltas;
-            atualizarVelocidade();
-            calcularVPM();
-        }
-        
-        function resetarVoltas() {
-            voltas = 0;
-            document.getElementById("voltas").textContent = voltas;
-            document.getElementById("vpm").textContent = 0;
-            document.getElementById("timer").textContent = "00:00";
-            velocidade = 0;
-            voltasPorMinuto = 0;
-            inicioTempo = Date.now();
-            ultimoVpm = 0; // Resetando o último VPM
-            desenharVelocimetro(velocidade);
-            clearInterval(timerInterval); // Parar o timer
-            iniciarTimer(); // Reiniciar o timer
-        }
-        
-        function atualizarVelocidade() {
-            velocidade = Math.min(100, voltas * 10);
-            desenharVelocimetro(velocidade);
-        }
-        
-        function calcularVPM() {
-            let tempoDecorrido = (Date.now() - inicioTempo) / 60000; // em minutos
-            voltasPorMinuto = tempoDecorrido > 0 ? (voltas / tempoDecorrido).toFixed(2) : 0;
-            document.getElementById("vpm").textContent = voltasPorMinuto;
-
-            // Verificar se o VPM diminuiu
-            if (ultimoVpm > 0 && voltasPorMinuto < ultimoVpm) {
-                resetarVoltas(); // Resetar tudo se VPM cair
-            } else {
-                ultimoVpm = voltasPorMinuto; // Atualizar último VPM
-            }
-        }
-        
-        function atualizarTimer() {
-            const tempoDecorrido = Date.now() - inicioTempo;
-            const minutos = Math.floor(tempoDecorrido / 60000);
-            const segundos = Math.floor((tempoDecorrido % 60000) / 1000);
-            const timeString = `${minutos < 10 ? '0' + minutos : minutos}:${segundos < 10 ? '0' + segundos : segundos}`;
-            document.getElementById("timer").textContent = timeString;
-        }
-
-        function iniciarTimer() {
-            timerInterval = setInterval(atualizarTimer, 1000); // Atualiza o timer a cada segundo
-        }
-
-        desenharVelocimetro(velocidade);
-        iniciarTimer(); // Inicia o timer assim que a página é carregada
+        setInterval(atualizarDados, 200);
     </script>
 </body>
 </html>
