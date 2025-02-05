@@ -8,7 +8,7 @@ const char *password = "PedalPro";
 // Pino de entrada para o sensor de voltas
 const int Voltas = 2;  // Pino onde o sensor está conectado
 int contador = 0;
-unsigned long tempoUltimaVolta = 0; // Para o cálculo de tempo
+unsigned long tempoUltimaVolta = 0; // Para evitar contagens múltiplas
 float distanciaPorVolta = 2.31; // Distância de uma volta em metros
 float velocidade = 0.0; // Velocidade em metros por segundo
 
@@ -44,18 +44,18 @@ void setup() {
     html += "<p id='velocidade'>Velocidade: 0 km/h</p>";
     html += "<script>";
     html += "function atualizarContador() {";
-    html += "  fetch('/leitura')"; // Faz a requisição para a rota '/leitura'
+    html += "  fetch('/leitura')"; 
     html += "  .then(response => response.text())";
     html += "  .then(data => {";
     html += "    document.getElementById('contador').innerText = 'Voltas: ' + data;";
     html += "  });";
-    html += "  fetch('/velocidade')"; // Faz a requisição para a rota '/velocidade'
+    html += "  fetch('/velocidade')"; 
     html += "  .then(response => response.text())";
     html += "  .then(data => {";
     html += "    document.getElementById('velocidade').innerText = 'Velocidade: ' + data + ' km/h';";
     html += "  });";
     html += "}";  
-    html += "setInterval(atualizarContador, 200);"; // Atualiza a cada 200ms
+    html += "setInterval(atualizarContador, 200);"; 
     html += "</script>";
     html += "</body>";
     html += "</html>";
@@ -65,32 +65,27 @@ void setup() {
 
   // Rota para retornar o valor das voltas
   server.on("/leitura", []() {
-    String response = String(contador);
-    server.send(200, "text/plain", response);
+    server.send(200, "text/plain", String(contador));
   });
 
   // Rota para retornar o valor da velocidade
   server.on("/velocidade", []() {
-    // Calcula a velocidade
-    unsigned long tempoDecorrido = millis() - tempoUltimaVolta; // Tempo desde a última volta (em ms)
+    unsigned long tempoDecorrido = millis() - tempoUltimaVolta;
     if (tempoDecorrido > 0 && contador > 0) {
-      // Calcula a velocidade em metros por segundo
-      float distancia = contador * distanciaPorVolta; // Distância total em metros
-      float velocidadeMs = distancia / (tempoDecorrido / 1000.0); // Velocidade em m/s
-      velocidade = velocidadeMs * 3.6; // Converte para km/h
+      float distancia = contador * distanciaPorVolta; 
+      float velocidadeMs = distancia / (tempoDecorrido / 1000.0); 
+      velocidade = velocidadeMs * 3.6; 
     }
-    
-    // Calculando a média da velocidade para melhorar a precisão
+
     tempoAcumulado += tempoDecorrido;
     voltasAcumuladas++;
-    if (voltasAcumuladas > 5) {  // Após 5 voltas, calculamos a média
+    if (voltasAcumuladas > 5) {  
       velocidadeMedia = (contador * distanciaPorVolta) / (tempoAcumulado / 1000.0) * 3.6;
-      tempoAcumulado = 0;  // Reseta o tempo acumulado para a próxima média
-      voltasAcumuladas = 0; // Reseta o contador de voltas
+      tempoAcumulado = 0;
+      voltasAcumuladas = 0;
     }
-    
-    String response = String(velocidadeMedia, 2); // Retorna a média da velocidade formatada
-    server.send(200, "text/plain", response);
+
+    server.send(200, "text/plain", String(velocidadeMedia, 2));
   });
 
   // Inicia o servidor
@@ -98,17 +93,23 @@ void setup() {
   Serial.println("Servidor web iniciado.");
 }
 
-void loop() {
-  server.handleClient(); // Trata requisições do servidor
-
-  // Lê o valor do sensor a cada 100ms
+void detectarVolta() {
+  static bool sensorAtivado = false; // Armazena se o sensor já estava ativado
   int valor = digitalRead(Voltas);
-  if (valor == LOW) {  // Se o sensor indicar uma volta (LOW)
-    contador++;  // Incrementa o contador
-    tempoUltimaVolta = millis(); // Marca o tempo da última volta
-    delay(200);  // Debounce simples (evitar múltiplas contagens rápidas)
-  }
 
-  // Pequena pausa para evitar poluição no monitor serial
-  delay(100);
+  if (valor == LOW && !sensorAtivado) { // Se o sensor detectar o imã e ainda não foi contado
+    if (millis() - tempoUltimaVolta > 500) { // Garante um intervalo de pelo menos 500ms
+      contador++; 
+      tempoUltimaVolta = millis(); 
+      sensorAtivado = true; 
+    }
+  } else if (valor == HIGH) { // Reseta quando o imã sai do sensor
+    sensorAtivado = false;
+  }
+}
+
+void loop() {
+  server.handleClient();
+  detectarVolta();
+  delay(5); // Reduz o uso da CPU
 }
