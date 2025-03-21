@@ -65,11 +65,6 @@ public class MainActivity extends AppCompatActivity {
     }
     //funcao que obtem os dados no esp
 
-    private void contagemDeVoltas(){
-
-        Request request = new Request.Builder().url(ESP_URL).build();
-
-    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -89,6 +84,8 @@ public class MainActivity extends AppCompatActivity {
             return true;
         } else if (id == R.id.action_about) {
             Toast.makeText(this, "Sobre o App", Toast.LENGTH_SHORT).show();
+            Intent intent2 = new Intent(this, AboutActivity.class);
+            startActivity(intent2);
             return true;
         } else if (id == R.id.action_exit) {
             finish(); // Fecha o app
