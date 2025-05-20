@@ -22,6 +22,11 @@ O dispositivo utiliza sensores para coletar dados em tempo real, fornecendo info
 - **Desenvolvimento do aplicativo Android**
 - **Bateria recarregável Li-ion**
 - **Linguagem C/C++ (Arduino IDE)**
+  
+## 📁 Estrutura do Projeto
+- `appCode/`: Aplicativo android(Android Studio)
+- `PedalPro.ino`: software embarcado no ESP8266
+- `HTML/`: Prontend
 
 ## Funcionamento Geral
 O sistema utiliza um (a)sensor magnético instalado no garfo dianteiro da bicicleta e (b)ímãs fixados nos raios da roda dianteira. A passagem dos ímãs pelo sensor gera pulsos que são detectados pelo (c) microcontrolador ESP8266, responsável por processar os dados e transmiti-los via Wi-Fi para um aplicativo em um (d) smartphone Android. O aplicativo, além de exibir informações como velocidade e distância percorrida, também permite o envio de dados do usuário como: peso, altura e taxa metabólica, ao ESP8266, possibilitando uma análise mais personalizada do desempenho.
