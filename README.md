@@ -35,3 +35,10 @@ O sistema PedalPro App é um aplicativo Android desenvolvido em Java, cuja estru
 
 ![image](https://github.com/user-attachments/assets/3ed62e8e-8d2a-4279-a035-54a49d244906)
 
+## Autores
+
+ELIAN DA ROCHA PINHEIRO @ElianPinheiro12 (https://github.com/ElianPinheiro12),
+
+LUIZ VINICIUS COSTA REIS, 
+
+ANA KAROLINE HIGINO LIMA
